@@ -111,8 +111,8 @@ namespace CommandsAPI
                 c.RoutePrefix = string.Empty;
             });
 
-            app.UseRouting();
             app.UseAuthentication();
+            app.UseRouting();
             app.UseCors(PolicyName);
 
             app.UseEndpoints(endpoints =>
