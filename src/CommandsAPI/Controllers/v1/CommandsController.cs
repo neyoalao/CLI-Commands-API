@@ -10,11 +10,12 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace CommandAPI.Controllers
 {
+    [Authorize]
     [Route("api/v1/[controller]")]
     [ApiController]
     public class CommandsController : ControllerBase
     {
-        
+
         private readonly ICommandsAPIRepo _repository;
         private readonly IMapper _mapper;
 
@@ -24,7 +25,7 @@ namespace CommandAPI.Controllers
             _mapper = mapper;
         }
 
-        
+
         //GET api/commands
 
         [HttpGet]
@@ -84,7 +85,7 @@ namespace CommandAPI.Controllers
         public ActionResult PartialCommandUpdate(int id, JsonPatchDocument<CommandUpdateDto> patchDoc)
         {
             var commandModelFromRepo = _repository.GetCommandById(id);
-            if(commandModelFromRepo == null)
+            if (commandModelFromRepo == null)
             {
                 return NotFound();
             }
@@ -92,7 +93,7 @@ namespace CommandAPI.Controllers
             var commandToPatch = _mapper.Map<CommandUpdateDto>(commandModelFromRepo);
             patchDoc.ApplyTo(commandToPatch, ModelState);
 
-            if(!TryValidateModel(commandToPatch))
+            if (!TryValidateModel(commandToPatch))
             {
                 return ValidationProblem(ModelState);
             }
@@ -111,7 +112,7 @@ namespace CommandAPI.Controllers
         public ActionResult DeleteCommand(int id)
         {
             var commandModelFromRepo = _repository.GetCommandById(id);
-            if(commandModelFromRepo == null)
+            if (commandModelFromRepo == null)
             {
                 return NotFound();
             }
@@ -119,6 +120,6 @@ namespace CommandAPI.Controllers
             _repository.SaveChanges();
 
             return NoContent();
-        }        
+        }
     }
 }

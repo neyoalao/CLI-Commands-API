@@ -11,6 +11,7 @@ using AutoMapper;
 using Newtonsoft.Json.Serialization;
 using Microsoft.OpenApi.Models;
 using CommandsAPI.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace CommandsAPI
 {
@@ -27,7 +28,12 @@ namespace CommandsAPI
 
         public void ConfigureServices(IServiceCollection services)
         {
-
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                            .AddJwtBearer(options =>
+                            {
+                                options.Audience = Configuration["AAD:ResourceId"];
+                                options.Authority = $"{Configuration["AAD:Instance"]}{Configuration["AAD:TenantId"]}";
+                            });
             services.AddDbContext<CommandsContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("CommandsConnection")));
             services.AddControllers().AddNewtonsoftJson(s =>
@@ -106,6 +112,7 @@ namespace CommandsAPI
             });
 
             app.UseRouting();
+            app.UseAuthentication();
             app.UseCors(PolicyName);
 
             app.UseEndpoints(endpoints =>
