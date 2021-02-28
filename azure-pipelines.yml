@@ -29,7 +29,9 @@ steps:
     publishWebProjects: false
     projects: 'src/CommandsAPI/CommandsAPI.csproj'
     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-    zipAfterPublish: false
+    zipAfterPublish: true
     
+
 - task: PublishBuildArtifacts@1
-  displayName: 'publish artifacts'
+  displayName: 'Publish Artifact'
+
