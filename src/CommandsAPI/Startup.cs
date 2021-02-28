@@ -112,6 +112,7 @@ namespace CommandsAPI
             });
 
             app.UseAuthentication();
+            app.UseAuthorization();
             app.UseRouting();
             app.UseCors(PolicyName);
 
