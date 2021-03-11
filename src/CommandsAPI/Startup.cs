@@ -10,8 +10,14 @@ using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using Newtonsoft.Json.Serialization;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.AzureAD.UI;
 using CommandsAPI.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication;
+using CommandAPI.Token;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace CommandsAPI
 {
@@ -28,14 +34,31 @@ namespace CommandsAPI
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                            .AddJwtBearer(options =>
-                            {
-                                options.Audience = Configuration["AAD:ResourceId"];
-                                options.Authority = $"{Configuration["AAD:Instance"]}{Configuration["AAD:TenantId"]}";
-                            });
+
+            // services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            //                 .AddJwtBearer(options =>
+            //                 {
+            //                     options.Audience = Configuration["AAD:ResourceId"];
+            //                     options.Authority = $"{Configuration["AAD:Instance"]}{Configuration["AAD:TenantId"]}";
+            //                 });
+            // services.AddAuthentication(AzureADDefaults.BearerAuthenticationScheme).AddAzureADBearer(options => Configuration.Bind("AzureActiveDirectory", options));
+            services.AddScoped<IJWTTokenGenerator, JWTTokenGenerator>();
             services.AddDbContext<CommandsContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("CommandsConnection")));
+
+            services.AddIdentity<IdentityUser, IdentityRole>(opt =>
+            {
+                opt.Password.RequireDigit = false;
+                opt.Password.RequireLowercase = false;
+                opt.Password.RequireNonAlphanumeric = false;
+                opt.Password.RequireUppercase = false;
+                opt.Password.RequiredLength = 4;
+
+                opt.User.RequireUniqueEmail = true;
+            }
+
+            ).AddEntityFrameworkStores<CommandsContext>();
+
             services.AddControllers().AddNewtonsoftJson(s =>
             {
                 s.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
@@ -44,6 +67,27 @@ namespace CommandsAPI
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             services.AddScoped<ICommandsAPIRepo, SqlCommandsAPIRepo>();
+
+            services.AddAuthentication(
+                //setup the job token schema
+                config =>
+            {
+                config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                config.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }
+            ).AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Token:Key"])),
+                    ValidIssuer = Configuration["Token:Issuer"],
+                    ValidateIssuer = true,
+                    ValidateAudience = false,
+                };
+            });
+
             var corsOrigins = Configuration.GetSection(PolicyName)
                     .GetChildren()
                     .Select(x => x.Value)
@@ -56,7 +100,7 @@ namespace CommandsAPI
                             builder =>
                             {
                                 builder
-                                    .WithOrigins(corsOrigins)
+                                .WithOrigins(corsOrigins)
                                 .AllowAnyMethod()
                                 .AllowAnyHeader();
                             });
@@ -90,6 +134,7 @@ namespace CommandsAPI
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             // it has to be called here before other functions
+            app.UseCors(PolicyName);
 
             if (env.IsDevelopment())
             {
@@ -116,7 +161,6 @@ namespace CommandsAPI
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseCors(PolicyName);
 
             app.UseEndpoints(endpoints =>
             {

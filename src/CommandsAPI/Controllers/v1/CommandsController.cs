@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace CommandAPI.Controllers
 {
-    [Authorize]
     [Route("api/v1/[controller]")]
     [ApiController]
     public class CommandsController : ControllerBase
@@ -50,6 +49,7 @@ namespace CommandAPI.Controllers
         }
 
         //POST api/commands/
+        [Authorize]
         [HttpPost]
         public ActionResult<CommandReadDto> CreateCommand(CommandCreateDto commandCreateDto)
         {
