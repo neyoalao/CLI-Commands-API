@@ -20,12 +20,6 @@ namespace CommandAPI.Token
         }
         public string GenerateToken(IdentityUser user, IList<string> roles, IList<Claim> claims)
         {
-            // var claims = new List<Claim>
-            // {
-            // 	new Claim(JwtRegisteredClaimNames.GivenName , user.UserName),
-            // 	new Claim(JwtRegisteredClaimNames.Email , user.Email),
-            // };
-
             claims.Add(new Claim(JwtRegisteredClaimNames.GivenName, user.UserName));
             claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email));
 
@@ -41,7 +35,7 @@ namespace CommandAPI.Token
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddDays(7),
+                Expires = DateTime.Now.AddDays(2),
                 SigningCredentials = creds,
                 Issuer = _config["Token:Issuer"],
             };

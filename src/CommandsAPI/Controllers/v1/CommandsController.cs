@@ -26,7 +26,6 @@ namespace CommandAPI.Controllers
 
 
         //GET api/commands
-
         [HttpGet]
         public ActionResult<IEnumerable<CommandReadDto>> GetAllCommands()
         {
@@ -36,7 +35,7 @@ namespace CommandAPI.Controllers
         }
 
         //GET api/commands/{id}
-        //[Authorize]       //Apply this attribute to lockdown this ActionResult (or others)
+        //[Authorize]       //Apply this attribute to lockdown this ActionResult (or others) // allow using this name attribute to return the command when a POST is made
         [HttpGet("{id}", Name = "GetCommandById")]
         public ActionResult<CommandReadDto> GetCommandById(int id)
         {
@@ -49,7 +48,7 @@ namespace CommandAPI.Controllers
         }
 
         //POST api/commands/
-        [Authorize]
+        [Authorize(Policy = "AdminDevelopers")]
         [HttpPost]
         public ActionResult<CommandReadDto> CreateCommand(CommandCreateDto commandCreateDto)
         {
@@ -63,6 +62,7 @@ namespace CommandAPI.Controllers
         }
 
         //PUT api/commands/{id}
+        [Authorize(Policy = "AdminDevelopers")]
         [HttpPut("{id}")]
         public ActionResult UpdateCommand(int id, CommandUpdateDto commandUpdateDto)
         {
@@ -81,6 +81,7 @@ namespace CommandAPI.Controllers
         }
 
         //PATCH api/commands/{id}
+        [Authorize(Policy = "AdminDevelopers")]
         [HttpPatch("{id}")]
         public ActionResult PartialCommandUpdate(int id, JsonPatchDocument<CommandUpdateDto> patchDoc)
         {
@@ -108,6 +109,7 @@ namespace CommandAPI.Controllers
         }
 
         //DELETE api/commands/{id}
+        [Authorize(Policy = "AdminDevelopers")]
         [HttpDelete("{id}")]
         public ActionResult DeleteCommand(int id)
         {

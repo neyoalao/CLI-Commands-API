@@ -43,6 +43,7 @@ namespace CommandsAPI
             //                 });
             // services.AddAuthentication(AzureADDefaults.BearerAuthenticationScheme).AddAzureADBearer(options => Configuration.Bind("AzureActiveDirectory", options));
             services.AddScoped<IJWTTokenGenerator, JWTTokenGenerator>();
+
             services.AddDbContext<CommandsContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("CommandsConnection")));
 
@@ -86,6 +87,24 @@ namespace CommandsAPI
                     ValidateIssuer = true,
                     ValidateAudience = false,
                 };
+            });
+
+            services.AddAuthorization(option =>
+            {
+                option.AddPolicy("OwnerDeveloper", opt =>
+                {
+                    opt.RequireClaim("jobtitle", "developer");
+                    opt.RequireRole("owner");
+
+
+                });
+                option.AddPolicy("AdminDevelopers", opt =>
+                {
+                    opt.RequireClaim("jobtitle", "developer");
+                    opt.RequireRole("admin", "owner");
+
+
+                });
             });
 
             var corsOrigins = Configuration.GetSection(PolicyName)
